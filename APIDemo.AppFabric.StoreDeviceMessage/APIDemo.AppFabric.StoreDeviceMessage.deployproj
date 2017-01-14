@@ -11,7 +11,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>d92b69b6-5220-43aa-80d9-dcd822cc845b</ProjectGuid>
+    <ProjectGuid>aabf1bfe-0eda-49a4-b57c-46ebdfa2e319</ProjectGuid>
   </PropertyGroup>
   <PropertyGroup>
     <TargetFrameworkIdentifier>Deployment</TargetFrameworkIdentifier>
@@ -29,9 +29,6 @@
       <Visible>False</Visible>
     </None>
     <Content Include="Deploy-AzureResourceGroup.ps1" />
-  </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Templates\" />
   </ItemGroup>
   <Target Name="GetReferenceAssemblyPaths" />
 </Project>
