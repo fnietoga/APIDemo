@@ -11,7 +11,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>aabf1bfe-0eda-49a4-b57c-46ebdfa2e319</ProjectGuid>
+    <ProjectGuid>1f3e3b1f-fcbd-4060-a485-39a8979ca89d</ProjectGuid>
   </PropertyGroup>
   <PropertyGroup>
     <TargetFrameworkIdentifier>Deployment</TargetFrameworkIdentifier>
@@ -29,6 +29,8 @@
       <Visible>False</Visible>
     </None>
     <Content Include="Deploy-AzureResourceGroup.ps1" />
+    <Content Include="LogicApp.json" />
+    <Content Include="LogicApp.parameters.json" />
   </ItemGroup>
   <Target Name="GetReferenceAssemblyPaths" />
 </Project>

@@ -1,15 +1,15 @@
-﻿#Requires -Version 3.0
+#Requires -Version 3.0
 #Requires -Module AzureRM.Resources
 #Requires -Module Azure.Storage
 
 Param(
     [string] [Parameter(Mandatory=$true)] $ResourceGroupLocation,
-    [string] $ResourceGroupName = '$defaultResourceGroupName$',
+    [string] $ResourceGroupName = 'APIDemo.LogicApps.StoreDeviceMessage',
     [switch] $UploadArtifacts,
     [string] $StorageAccountName,
     [string] $StorageContainerName = $ResourceGroupName.ToLowerInvariant() + '-stageartifacts',
-    [string] $TemplateFile = '$deployTemplateFileName$.json',
-    [string] $TemplateParametersFile = '$deployTemplateFileName$.parameters.json',
+    [string] $TemplateFile = 'LogicApp.json',
+    [string] $TemplateParametersFile = 'LogicApp.parameters.json',
     [string] $ArtifactStagingDirectory = '.',
     [string] $DSCSourceFolder = 'DSC',
     [switch] $ValidateOnly
@@ -97,7 +97,7 @@ if ($UploadArtifacts) {
     }
 
     # Copy files from the local storage staging location to the storage account container
-    New-AzureStorageContainer -Name $StorageContainerName -Context $StorageAccountContext -Permission Container -ErrorAction SilentlyContinue *>&1
+    New-AzureStorageContainer -Name $StorageContainerName -Context $StorageAccountContext -ErrorAction SilentlyContinue *>&1
 
     $ArtifactFilePaths = Get-ChildItem $ArtifactStagingDirectory -Recurse -File | ForEach-Object -Process {$_.FullName}
     foreach ($SourcePath in $ArtifactFilePaths) {
