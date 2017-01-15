@@ -36,7 +36,7 @@ namespace APIDemo.IoT.DeviceEmulator
             Devices = DeviceManagement.RegisterDevices(DevicesNumber);
             Console.CancelKeyPress += delegate (object sender, ConsoleCancelEventArgs e) { 
                 //On cancel, delete all devices
-                DeviceManagement.DeleteAllDevices();
+                //DeviceManagement.DeleteAllDevices();
                 e.Cancel = true;
                 Environment.Exit(0);
             };

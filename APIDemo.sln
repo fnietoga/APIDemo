@@ -15,7 +15,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "LogicApps", "LogicApps", "{
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "APIDemo.IoT.DeviceEmulator", "APIDemo.IoT.DeviceEmulator\APIDemo.IoT.DeviceEmulator.csproj", "{24BD0A3C-3738-4893-9507-9F89BE4265D6}"
 EndProject
-Project("{151D2E53-A2C4-4D7D-83FE-D05416EBD58E}") = "APIDemo.LogicApps.StoreDeviceMessage", "APIDemo.LogicApps.StoreDeviceMessage\APIDemo.LogicApps.StoreDeviceMessage.deployproj", "{1F3E3B1F-FCBD-4060-A485-39A8979CA89D}"
+Project("{151D2E53-A2C4-4D7D-83FE-D05416EBD58E}") = "APIDemo.LogicApps.StoreDeviceMessages", "APIDemo.LogicApps.StoreDeviceMessage\APIDemo.LogicApps.StoreDeviceMessages.deployproj", "{1F3E3B1F-FCBD-4060-A485-39A8979CA89D}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

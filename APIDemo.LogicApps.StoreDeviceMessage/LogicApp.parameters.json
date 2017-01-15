@@ -3,7 +3,10 @@
     "contentVersion": "1.0.0.0",
     "parameters": {
         "logicAppName": {
-            "value": null
+            "value": "StoreDeviceMessages"
+        },
+        "twitter_1_Connection_DisplayName": {
+            "value": "Twitter.fnietoga"
         }
     }
 }

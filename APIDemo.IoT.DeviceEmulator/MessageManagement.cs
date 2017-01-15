@@ -28,12 +28,9 @@ namespace APIDemo.IoT.DeviceEmulator
                        {
                            foreach (var curDevice in devices)
                            {
-                               string messageString = GetRandomMessage(curDevice.Id, (MessageType)rand.Next(0, 5));
-                               Message message = new Message(Encoding.ASCII.GetBytes(messageString));
-
+                               Message message = GetRandomMessage(curDevice.Id, (MessageType)rand.Next(0, 4));
                                DeviceClient deviceClient = DeviceClient.CreateFromConnectionString(connectionString, curDevice.Id);
-                               await deviceClient.SendEventAsync(message);
-                               Console.WriteLine("{0} > Sending message: {1}", DateTime.Now, messageString);
+                               await deviceClient.SendEventAsync(message);                               
                            }
 
                            //Checks if a cancellation is requested
@@ -58,9 +55,10 @@ namespace APIDemo.IoT.DeviceEmulator
             //tokenSource2.Cancel();
         }
 
-        private static string GetRandomMessage(string deviceId, MessageType messageType)
+        private static Message GetRandomMessage(string deviceId, MessageType messageType)
         {
             string messageString = string.Empty;
+            string strMessageType = string.Empty;
 
             Random rand = new Random();
             switch (messageType)
@@ -68,56 +66,67 @@ namespace APIDemo.IoT.DeviceEmulator
                 case MessageType.Location:
                     messageString = JsonConvert.SerializeObject(new
                     {
+                        id = Guid.NewGuid().ToString(),
                         deviceId = deviceId,
+                        timestamp = DateTime.Now,
                         latitude = GetRandomNumber(-90, 90),
                         longitude = GetRandomNumber(-180, 180),
                         distortion = GetRandomNumber(0, 5),
                     });
+                    strMessageType = "telemetry";
                     break;
 
                 case MessageType.Altitude:
                     messageString = JsonConvert.SerializeObject(new
                     {
+                        id = Guid.NewGuid().ToString(),
                         deviceId = deviceId,
+                        timestamp = DateTime.Now,
                         altitude = GetRandomNumber(0, 8848)
                     });
+                    strMessageType = "telemetry";
                     break;
 
                 case MessageType.Temperature:
                     messageString = JsonConvert.SerializeObject(new
                     {
+                        id = Guid.NewGuid().ToString(),
                         deviceId = deviceId,
+                        timestamp = DateTime.Now,
                         scale = "celsius",
                         temperature = GetRandomNumber(-40, 55)
                     });
+                    strMessageType = "telemetry";
                     break;
 
                 case MessageType.Humidity:
                     messageString = JsonConvert.SerializeObject(new
                     {
+                        id = Guid.NewGuid().ToString(),
                         deviceId = deviceId,
+                        timestamp = DateTime.Now,
                         humidity = GetRandomNumber(0, 100)
                     });
-                    break;
-
-                case MessageType.GetRoute:
-                    messageString = JsonConvert.SerializeObject(new
-                    {
-                        deviceId = deviceId,
-                        lastLocations = GetRandomNumber(0, 20)
-                    });
-                    break;
+                    strMessageType = "telemetry";
+                    break; 
 
                 default:
+                    strMessageType = "error";
                     messageString = JsonConvert.SerializeObject(new
                     {
+                        id = Guid.NewGuid().ToString(),
                         deviceId = deviceId,
-                        errorNumber = GetRandomNumber(0, 999),
+                        timestamp = DateTime.Now,
+                        errorNumber = Convert.ToInt32(Math.Round(GetRandomNumber(0, 999),0)),
                         errorDescription = "Random error."
-                    });
+                    });                  
                     break;
             }
-            return messageString;
+            Message message = new Message(Encoding.ASCII.GetBytes(messageString));
+            message.Properties.Add("messageType", strMessageType);
+            Console.WriteLine("{0} > Sending message: {1}", DateTime.Now, messageString);
+
+            return message;
         }
 
         private static double GetRandomNumber(double minimum, double maximum)
@@ -132,7 +141,6 @@ namespace APIDemo.IoT.DeviceEmulator
             Altitude,
             Temperature,
             Humidity,
-            GetRoute,
             Error
         }
     }

@@ -50,6 +50,35 @@
       "metadata": {
         "description": "Azure Service Bus Connection String"
       }
+    },
+    "documentdb_1_Connection_Name": {
+      "type": "string",
+      "defaultValue": "documentdb"
+    },
+    "documentdb_1_Connection_DisplayName": {
+      "type": "string",
+      "defaultValue": "DemoAPI.DocumentDB"
+    },
+    "documentdb_1_databaseAccount": {
+      "type": "string",
+      "metadata": {
+        "description": "Database account name"
+      },
+      "defaultValue": "ddbintegrationdevicedata"
+    },
+    "documentdb_1_accessKey": {
+      "type": "securestring",
+      "metadata": {
+        "description": "Access Key to your DocumentDB account"
+      }
+    },
+    "twitter_1_Connection_Name": {
+      "type": "string",
+      "defaultValue": "twitter"
+    },
+    "twitter_1_Connection_DisplayName": {
+      "type": "string",
+      "defaultValue": "fnietoga"
     }
   },
   "variables": {},
@@ -65,15 +94,226 @@
       "properties": {
         "definition": {
           "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
-          "actions": {},
-          "parameters": {},
-          "triggers": {},
+          "actions": {
+            "Complete_the_message_in_a_queue": {
+              "type": "ApiConnection",
+              "inputs": {
+                "host": {
+                  "api": {
+                    "runtimeUrl": "https://logic-apis-westeurope.azure-apim.net/apim/servicebus"
+                  },
+                  "connection": {
+                    "name": "@parameters('$connections')['servicebus_1']['connectionId']"
+                  }
+                },
+                "method": "delete",
+                "path": "/@{encodeURIComponent('devicemessages')}/messages/complete",
+                "queries": {
+                  "lockToken": "@{triggerBody()?['LockToken']}",
+                  "queueType": "Main"
+                }
+              },
+              "runAfter": {
+                "Scope_Action": [
+                  "Succeeded"
+                ]
+              }
+            },
+            "Dead-letter_the_message_in_a_queue": {
+              "type": "ApiConnection",
+              "inputs": {
+                "host": {
+                  "api": {
+                    "runtimeUrl": "https://logic-apis-westeurope.azure-apim.net/apim/servicebus"
+                  },
+                  "connection": {
+                    "name": "@parameters('$connections')['servicebus_1']['connectionId']"
+                  }
+                },
+                "method": "post",
+                "path": "/@{encodeURIComponent('devicemessages')}/messages/deadletter",
+                "queries": {
+                  "lockToken": "@{triggerBody()?['LockToken']}"
+                }
+              },
+              "runAfter": {
+                "Scope_Action": [
+                  "Failed"
+                ]
+              }
+            },
+            "Scope_Action": {
+              "type": "Scope",
+              "actions": {
+                "Extract_DocumentDB_Message": {
+                  "type": "Compose",
+                  "inputs": "@json(base64toString(triggerBody()['ContentData']))",
+                  "runAfter": {}
+                },
+                "MessageType_Action": {
+                  "type": "If",
+                  "expression": "@equals(triggerBody()?['Properties']['messageType'], 'error')",
+                  "actions": {
+                    "DocumentDB_AddError": {
+                      "type": "ApiConnection",
+                      "inputs": {
+                        "host": {
+                          "api": {
+                            "runtimeUrl": "https://logic-apis-westeurope.azure-apim.net/apim/documentdb"
+                          },
+                          "connection": {
+                            "name": "@parameters('$connections')['documentdb']['connectionId']"
+                          }
+                        },
+                        "method": "post",
+                        "path": "/dbs/@{encodeURIComponent('devicedataDB')}/colls/@{encodeURIComponent('deviceErrorsCollection')}/docs",
+                        "headers": {
+                          "x-ms-documentdb-is-upsert": false
+                        },
+                        "body": "@outputs('Extract_DocumentDB_Message')"
+                      },
+                      "runAfter": {}
+                    }
+                  },
+                  "runAfter": {
+                    "Extract_DocumentDB_Message": [
+                      "Succeeded"
+                    ]
+                  },
+                  "else": {
+                    "actions": {
+                      "DocumentDB_AddTelemetry": {
+                        "type": "ApiConnection",
+                        "inputs": {
+                          "host": {
+                            "api": {
+                              "runtimeUrl": "https://logic-apis-westeurope.azure-apim.net/apim/documentdb"
+                            },
+                            "connection": {
+                              "name": "@parameters('$connections')['documentdb']['connectionId']"
+                            }
+                          },
+                          "method": "post",
+                          "path": "/dbs/@{encodeURIComponent('devicedataDB')}/colls/@{encodeURIComponent('devicedataCollection')}/docs",
+                          "headers": {
+                            "x-ms-documentdb-is-upsert": false
+                          },
+                          "body": "@outputs('Extract_DocumentDB_Message')"
+                        },
+                        "runAfter": {}
+                      }
+                    }
+                  }
+                }
+              },
+              "runAfter": {}
+            },
+            "Scope_Notification": {
+              "type": "Scope",
+              "actions": {
+                "MessageType_Notification": {
+                  "type": "If",
+                  "expression": "@equals(triggerBody()?['Properties']['messageType'], 'error')",
+                  "actions": {
+                    "Compose_Tweet": {
+                      "type": "Compose",
+                      "inputs": "@concat('#apidemo error dev:' ,outputs('Extract_DocumentDB_Message')['deviceId'] ,',n:' ,outputs('Extract_DocumentDB_Message')['errorNumber'] ,',des:' ,outputs('Extract_DocumentDB_Message')['errorDescription'] ,'.' )",
+                      "runAfter": {}
+                    },
+                    "Post_a_tweet": {
+                      "type": "ApiConnection",
+                      "inputs": {
+                        "host": {
+                          "api": {
+                            "runtimeUrl": "https://logic-apis-westeurope.azure-apim.net/apim/twitter"
+                          },
+                          "connection": {
+                            "name": "@parameters('$connections')['twitter']['connectionId']"
+                          }
+                        },
+                        "method": "post",
+                        "path": "/posttweet",
+                        "queries": {
+                          "tweetText": "@substring(outputs('Compose_Tweet'),0,min(140,length(outputs('Compose_Tweet'))))"
+                        }
+                      },
+                      "runAfter": {
+                        "Compose_Tweet": [
+                          "Succeeded"
+                        ]
+                      }
+                    }
+                  },
+                  "runAfter": {}
+                }
+              },
+              "runAfter": {
+                "Complete_the_message_in_a_queue": [
+                  "Succeeded"
+                ]
+              }
+            }
+          },
+          "parameters": {
+            "$connections": {
+              "defaultValue": {},
+              "type": "Object"
+            }
+          },
+          "triggers": {
+            "When_a_message_is_received_in_a_queue_(peek-lock)": {
+              "type": "ApiConnection",
+              "inputs": {
+                "host": {
+                  "api": {
+                    "runtimeUrl": "https://logic-apis-westeurope.azure-apim.net/apim/servicebus"
+                  },
+                  "connection": {
+                    "name": "@parameters('$connections')['servicebus_1']['connectionId']"
+                  }
+                },
+                "method": "get",
+                "path": "/@{encodeURIComponent('devicemessages')}/messages/head/peek",
+                "queries": {
+                  "queueType": "Main"
+                }
+              },
+              "recurrence": {
+                "frequency": "Minute",
+                "interval": 1
+              }
+            }
+          },
           "contentVersion": "1.0.0.0",
           "outputs": {}
         },
-        "parameters": {}
+        "parameters": {
+          "$connections": {
+            "value": {
+              "servicebus_1": {
+                "id": "[concat('/subscriptions/', subscription().subscriptionId, '/providers/Microsoft.Web/locations/', parameters('logicAppLocation'), '/managedApis/', 'servicebus')]",
+                "connectionId": "[resourceId('Microsoft.Web/connections', parameters('servicebus_1_Connection_Name'))]",
+                "connectionName": "[parameters('servicebus_1_Connection_Name')]"
+              },
+              "documentdb": {
+                "id": "[concat('/subscriptions/', subscription().subscriptionId, '/providers/Microsoft.Web/locations/', parameters('logicAppLocation'), '/managedApis/', 'documentdb')]",
+                "connectionId": "[resourceId('Microsoft.Web/connections', parameters('documentdb_1_Connection_Name'))]",
+                "connectionName": "[parameters('documentdb_1_Connection_Name')]"
+              },
+              "twitter": {
+                "id": "[concat('/subscriptions/', subscription().subscriptionId, '/providers/Microsoft.Web/locations/', parameters('logicAppLocation'), '/managedApis/', 'twitter')]",
+                "connectionId": "[resourceId('Microsoft.Web/connections', parameters('twitter_1_Connection_Name'))]",
+                "connectionName": "[parameters('twitter_1_Connection_Name')]"
+              }
+            }
+          }
+        }
       },
-      "dependsOn": []
+      "dependsOn": [
+        "[resourceId('Microsoft.Web/connections', parameters('servicebus_1_Connection_Name'))]",
+        "[resourceId('Microsoft.Web/connections', parameters('documentdb_1_Connection_Name'))]",
+        "[resourceId('Microsoft.Web/connections', parameters('twitter_1_Connection_Name'))]"
+      ]
     },
     {
       "type": "MICROSOFT.WEB/CONNECTIONS",
@@ -88,6 +328,34 @@
         "parameterValues": {
           "connectionString": "[parameters('servicebus_1_connectionString')]"
         }
+      }
+    },
+    {
+      "type": "MICROSOFT.WEB/CONNECTIONS",
+      "apiVersion": "2016-06-01",
+      "name": "[parameters('documentdb_1_Connection_Name')]",
+      "location": "[parameters('logicAppLocation')]",
+      "properties": {
+        "api": {
+          "id": "[concat('/subscriptions/', subscription().subscriptionId, '/providers/Microsoft.Web/locations/', parameters('logicAppLocation'), '/managedApis/', 'documentdb')]"
+        },
+        "displayName": "[parameters('documentdb_1_Connection_DisplayName')]",
+        "parameterValues": {
+          "databaseAccount": "[parameters('documentdb_1_databaseAccount')]",
+          "accessKey": "[parameters('documentdb_1_accessKey')]"
+        }
+      }
+    },
+    {
+      "type": "MICROSOFT.WEB/CONNECTIONS",
+      "apiVersion": "2016-06-01",
+      "name": "[parameters('twitter_1_Connection_Name')]",
+      "location": "[parameters('logicAppLocation')]",
+      "properties": {
+        "api": {
+          "id": "[concat('/subscriptions/', subscription().subscriptionId, '/providers/Microsoft.Web/locations/', parameters('logicAppLocation'), '/managedApis/', 'twitter')]"
+        },
+        "displayName": "[parameters('twitter_1_Connection_DisplayName')]"
       }
     }
   ],
