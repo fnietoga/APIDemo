@@ -24,8 +24,11 @@ namespace APIDemo.DeviceDataWebInterface.Controllers
         [Route("{id:guid}")]
         public IHttpActionResult Get(Guid id)
         {
+            if (id == null || id == Guid.Empty) return BadRequest();
+
             var item = Items.Get(id);
-            if (item == null || id == Guid.Empty)
+
+            if (item == null)
             {
                 return NotFound();
             }
