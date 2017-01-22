@@ -13,7 +13,6 @@ namespace APIDemo.IoT.DeviceEmulator
     {
         internal static void EmulateDeviceToCloudMessagesAsync(List<Microsoft.Azure.Devices.Device> devices)
         {
-            Random rand = new Random();
             var tokenSource2 = new CancellationTokenSource();
 
             Task.Run(
@@ -28,9 +27,9 @@ namespace APIDemo.IoT.DeviceEmulator
                        {
                            foreach (var curDevice in devices)
                            {
-                               Message message = GetRandomMessage(curDevice.Id, (MessageType)rand.Next(0, 4));
+                               Message message = GetRandomMessage(curDevice.Id, (MessageType)Utils.RandomValues.GetRandomInt(0, 4));
                                DeviceClient deviceClient = DeviceClient.CreateFromConnectionString(connectionString, curDevice.Id);
-                               await deviceClient.SendEventAsync(message);                               
+                               await deviceClient.SendEventAsync(message);
                            }
 
                            //Checks if a cancellation is requested
@@ -46,7 +45,7 @@ namespace APIDemo.IoT.DeviceEmulator
 
                    }, tokenSource2.Token).GetAwaiter().GetResult();
 
-          
+
         }
 
         protected static void cancelationHandler(object sender, ConsoleCancelEventArgs args)
@@ -59,8 +58,7 @@ namespace APIDemo.IoT.DeviceEmulator
         {
             string messageString = string.Empty;
             string strMessageType = string.Empty;
-
-            Random rand = new Random();
+      
             switch (messageType)
             {
                 case MessageType.Location:
@@ -69,9 +67,9 @@ namespace APIDemo.IoT.DeviceEmulator
                         id = Guid.NewGuid().ToString(),
                         deviceId = deviceId,
                         timestamp = DateTime.Now,
-                        latitude = GetRandomNumber(-90, 90),
-                        longitude = GetRandomNumber(-180, 180),
-                        distortion = GetRandomNumber(0, 5),
+                        latitude = Utils.RandomValues.GetRandomDouble(-90, 90),
+                        longitude = Utils.RandomValues.GetRandomDouble(-180, 180),
+                        distortion = Utils.RandomValues.GetRandomDouble(0, 5),
                     });
                     strMessageType = "telemetry";
                     break;
@@ -82,7 +80,7 @@ namespace APIDemo.IoT.DeviceEmulator
                         id = Guid.NewGuid().ToString(),
                         deviceId = deviceId,
                         timestamp = DateTime.Now,
-                        altitude = GetRandomNumber(0, 8848)
+                        altitude = Utils.RandomValues.GetRandomDouble(0, 8848)
                     });
                     strMessageType = "telemetry";
                     break;
@@ -94,7 +92,7 @@ namespace APIDemo.IoT.DeviceEmulator
                         deviceId = deviceId,
                         timestamp = DateTime.Now,
                         scale = "celsius",
-                        temperature = GetRandomNumber(-40, 55)
+                        temperature = Utils.RandomValues.GetRandomDouble(-40, 55)
                     });
                     strMessageType = "telemetry";
                     break;
@@ -105,10 +103,10 @@ namespace APIDemo.IoT.DeviceEmulator
                         id = Guid.NewGuid().ToString(),
                         deviceId = deviceId,
                         timestamp = DateTime.Now,
-                        humidity = GetRandomNumber(0, 100)
+                        humidity = Utils.RandomValues.GetRandomDouble(0, 100)
                     });
                     strMessageType = "telemetry";
-                    break; 
+                    break;
 
                 default:
                     strMessageType = "error";
@@ -117,9 +115,9 @@ namespace APIDemo.IoT.DeviceEmulator
                         id = Guid.NewGuid().ToString(),
                         deviceId = deviceId,
                         timestamp = DateTime.Now,
-                        errorNumber = Convert.ToInt32(Math.Round(GetRandomNumber(0, 999),0)),
+                        errorNumber = Convert.ToInt32(Utils.RandomValues.GetRandomInt(0, 999)),
                         errorDescription = "Random error."
-                    });                  
+                    });
                     break;
             }
             Message message = new Message(Encoding.ASCII.GetBytes(messageString));
@@ -129,12 +127,7 @@ namespace APIDemo.IoT.DeviceEmulator
             return message;
         }
 
-        private static double GetRandomNumber(double minimum, double maximum)
-        {
-            Random random = new Random();
-            return random.NextDouble() * (maximum - minimum) + minimum;
-        }
-
+      
         internal enum MessageType
         {
             Location,
