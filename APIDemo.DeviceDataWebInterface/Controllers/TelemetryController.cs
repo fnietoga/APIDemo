@@ -1,6 +1,8 @@
-﻿using System;
+﻿using Swashbuckle.Swagger.Annotations;
+using System;
 using System.Collections.Generic;
 using System.Web.Http;
+using System.Web.Http.Description;
 
 namespace APIDemo.DeviceDataWebInterface.Controllers
 {
@@ -20,8 +22,16 @@ namespace APIDemo.DeviceDataWebInterface.Controllers
             return Items.GetAll();
         }
 
+        /// <summary>
+        /// Obtiene un documento de telemetría de dispositivo por su ID (guid)
+        /// </summary>
+        /// <param name="id">Id del elemento de telemetría a localizar</param>
+        /// <returns>El elemento solicitado, NotFound en caso contrario</returns>
         // GET api/telemetry/3F2504E0-4F89-11D3-9A0C-0305E82C3301
         [Route("{id:guid}")]
+        //[ResponseType(typeof(Models.DeviceTelemetry))]
+        [SwaggerResponse(System.Net.HttpStatusCode.OK, Type = typeof(Models.DeviceTelemetry))]
+        [SwaggerResponse(System.Net.HttpStatusCode.NotFound)]       
         public IHttpActionResult Get(Guid id)
         {
             if (id == null || id == Guid.Empty) return BadRequest();

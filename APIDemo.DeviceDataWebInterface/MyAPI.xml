@@ -1,0 +1,31 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>APIDemo.DeviceDataWebInterface</name>
+    </assembly>
+    <members>
+        <member name="M:APIDemo.DeviceDataWebInterface.Controllers.TelemetryController.Get(System.Guid)">
+            <summary>
+            Obtiene un documento de telemetría de dispositivo por su ID (guid)
+            </summary>
+            <param name="id">Id del elemento de telemetría a localizar</param>
+            <returns>El elemento solicitado, NotFound en caso contrario</returns>
+        </member>
+        <member name="T:APIDemo.DeviceDataWebInterface.DeviceDataWebInterface">
+            <summary>
+            The FabricRuntime creates an instance of this class for each service type instance. 
+            </summary>
+        </member>
+        <member name="M:APIDemo.DeviceDataWebInterface.DeviceDataWebInterface.CreateServiceInstanceListeners">
+            <summary>
+            Optional override to create listeners (like tcp, http) for this service instance.
+            </summary>
+            <returns>The collection of listeners.</returns>
+        </member>
+        <member name="M:APIDemo.DeviceDataWebInterface.Program.Main">
+            <summary>
+            This is the entry point of the service host process.
+            </summary>
+        </member>
+    </members>
+</doc>

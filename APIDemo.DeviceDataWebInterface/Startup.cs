@@ -1,5 +1,7 @@
-﻿using System.Web.Http;
+﻿using System;
+using System.Web.Http;
 using Owin;
+using Swashbuckle.Application;
 
 namespace APIDemo.DeviceDataWebInterface
 {
@@ -16,8 +18,16 @@ namespace APIDemo.DeviceDataWebInterface
             config.MapHttpAttributeRoutes();
             config.EnsureInitialized();
 
-            //Default routing
-            config.Routes.MapHttpRoute(
+            config.EnableSwagger(c => 
+            {
+                c.SingleApiVersion("v1", "Kabel - APIDemo. Tu API en 1 hora.");
+                c.IncludeXmlComments("MyAPI.xml");
+
+            })
+            .EnableSwaggerUi();
+          
+                 //Default routing
+                 config.Routes.MapHttpRoute(
                 name: "DefaultApi",
                 routeTemplate: "api/{controller}/{id}",
                 defaults: new { id = RouteParameter.Optional }
@@ -27,5 +37,6 @@ namespace APIDemo.DeviceDataWebInterface
 
             appBuilder.UseWebApi(config);
         }
+ 
     }
 }
