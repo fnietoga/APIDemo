@@ -2,6 +2,7 @@
 using System.Web.Http;
 using Owin;
 using Swashbuckle.Application;
+using Swashbuckle.Swagger.XmlComments;
 
 namespace APIDemo.DeviceDataWebInterface
 {
@@ -21,9 +22,14 @@ namespace APIDemo.DeviceDataWebInterface
             config.EnableSwagger(c => 
             {
                 c.SingleApiVersion("v1", "Kabel - APIDemo. Tu API en 1 hora.");
-                c.IncludeXmlComments("MyAPI.xml");
+                c.IncludeXmlComments("MyAPI.xml");              
+                //c.OperationFilter<MultipleOperationsWithSameVerbFilter>();
+                //c.IgnoreObsoleteActions();
+                //c.DescribeAllEnumsAsStrings();
+                //c.IgnoreObsoleteProperties();
+             
 
-            })
+            }) 
             .EnableSwaggerUi();
           
                  //Default routing
